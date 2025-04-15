@@ -56,6 +56,24 @@ export default function Home() {
     // Return the fixed amount instead of generating a random one
     return request.amount || '$0.00';
   };
+
+  // Get the request type from the request data
+  const getRequestType = (request) => {
+    return request.request?.request_type || 'Unknown';
+  };
+
+  // Get status code color class based on status code
+  const getStatusColorClass = (statusCode) => {
+    if (statusCode >= 200 && statusCode < 300) {
+      return 'bg-green-100 text-green-800'; // Success
+    } else if (statusCode >= 400 && statusCode < 500) {
+      return 'bg-yellow-100 text-yellow-800'; // Client error
+    } else if (statusCode >= 500) {
+      return 'bg-red-100 text-red-800'; // Server error
+    } else {
+      return 'bg-blue-100 text-blue-800'; // Other
+    }
+  };
   
   return (
     <div>
@@ -86,7 +104,7 @@ export default function Home() {
                 
                 <div className="flex flex-col">
                   <span className="font-medium">Type</span>
-                  <span className="text-gray-500 text-sm">OPD Claim</span>
+                  <span className="text-gray-500 text-sm capitalize">{getRequestType(claim)}</span>
                 </div>
                 
                 <div className="flex flex-col">
@@ -95,11 +113,11 @@ export default function Home() {
                 </div>
                 
                 <div>
-                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                  <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColorClass(claim.statusCode)}`}>
                     <svg className="h-4 w-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                     </svg>
-                    Pending
+                    {claim.statusCode}
                   </span>
                 </div>
               </div>
