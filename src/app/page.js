@@ -38,25 +38,23 @@ export default function Home() {
     return JSON.stringify(data, null, 2);
   };
   
-  // Extract member name from request data
-  const getMemberName = (request) => {
-    const memberInfo = request.request?.request?.member_id || 'Unknown';
-    // In a real implementation, you would look up the member name from the member ID
-    // For this POC, we'll use some placeholder names
+  // Extract member name from request data - get the exact name
+  const getMemberInfo = (request) => {
+    const memberID = request.request?.request?.member_id || 'Unknown';
+    
+    // Get the full name for display (in a real app, this would come from a database lookup)
     const names = {
-      'MEM12345': 'Somchai Jaidee',
-      'MEM12346': 'Maria Gonzalez',
+      'MEM12345': 'Charles Heyer',  // Matches the bank_account.holder in the request
+      'MEM12346': 'Maria Rodriguez', // Matches the bank_account.holder in the request
       'DEFAULT': 'Unknown Member'
     };
-    return names[memberInfo] || names['DEFAULT'];
+    
+    return {
+      id: memberID,
+      name: names[memberID] || names['DEFAULT']
+    };
   };
   
-  // Get the fixed amount from the request
-  const getAmount = (request) => {
-    // Return the fixed amount instead of generating a random one
-    return request.amount || '$0.00';
-  };
-
   // Get the request type from the request data
   const getRequestType = (request) => {
     return request.request?.request_type || 'Unknown';
@@ -91,52 +89,56 @@ export default function Home() {
         </div>
       ) : (
         <div className="space-y-4">
-          {claimRequests.map(claim => (
-            <div key={claim.id} className="bg-white border rounded-lg overflow-hidden shadow-sm">
-              <div 
-                className="p-4 cursor-pointer hover:bg-gray-50 flex items-center justify-between"
-                onClick={() => toggleExpand(claim.id)}
-              >
-                <div className="flex flex-col">
-                  <span className="font-medium">{getMemberName(claim)}</span>
-                  <span className="text-gray-500 text-sm">{claim.request?.request_id || 'Unknown ID'}</span>
-                </div>
-                
-                <div className="flex flex-col">
-                  <span className="font-medium">Type</span>
-                  <span className="text-gray-500 text-sm capitalize">{getRequestType(claim)}</span>
-                </div>
-                
-                <div className="flex flex-col">
-                  <span className="font-medium">{getAmount(claim)}</span>
-                  <span className="text-gray-500 text-sm">Below Deductible Amount</span>
-                </div>
-                
-                <div>
-                  <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColorClass(claim.statusCode)}`}>
-                    <svg className="h-4 w-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                    </svg>
-                    {claim.statusCode}
-                  </span>
-                </div>
-              </div>
-              
-              {expandedId === claim.id && (
-                <div className="border-t p-4 bg-gray-50">
-                  <div className="mb-4">
-                    <h3 className="text-sm font-medium text-gray-700 mb-2">API Request:</h3>
-                    <pre className="bg-white p-3 rounded border text-xs overflow-auto max-h-60">{formatJson(claim.request)}</pre>
+          {claimRequests.map(claim => {
+            const memberInfo = getMemberInfo(claim);
+            
+            return (
+              <div key={claim.id} className="bg-white border rounded-lg overflow-hidden shadow-sm">
+                <div 
+                  className="p-4 cursor-pointer hover:bg-gray-50 flex items-center justify-between"
+                  onClick={() => toggleExpand(claim.id)}
+                >
+                  <div className="flex flex-col">
+                    <span className="font-medium">{memberInfo.name}</span>
+                    <span className="text-gray-500 text-sm">{memberInfo.id}</span>
+                  </div>
+                  
+                  <div className="flex flex-col">
+                    <span className="font-medium">Type</span>
+                    <span className="text-gray-500 text-sm capitalize">{getRequestType(claim)}</span>
+                  </div>
+                  
+                  <div className="flex flex-col">
+                    <span className="font-medium">Amount</span>
+                    <span className="text-gray-500 text-sm">{claim.amount}</span>
                   </div>
                   
                   <div>
-                    <h3 className="text-sm font-medium text-gray-700 mb-2">API Response:</h3>
-                    <pre className="bg-white p-3 rounded border text-xs overflow-auto max-h-60">{formatJson(claim.response)}</pre>
+                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColorClass(claim.statusCode)}`}>
+                      <svg className="h-4 w-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                      </svg>
+                      {claim.statusCode}
+                    </span>
                   </div>
                 </div>
-              )}
-            </div>
-          ))}
+                
+                {expandedId === claim.id && (
+                  <div className="border-t p-4 bg-gray-50">
+                    <div className="mb-4">
+                      <h3 className="text-sm font-medium text-gray-700 mb-2">API Request:</h3>
+                      <pre className="bg-white p-3 rounded border text-xs overflow-auto max-h-60">{formatJson(claim.request)}</pre>
+                    </div>
+                    
+                    <div>
+                      <h3 className="text-sm font-medium text-gray-700 mb-2">API Response:</h3>
+                      <pre className="bg-white p-3 rounded border text-xs overflow-auto max-h-60">{formatJson(claim.response)}</pre>
+                    </div>
+                  </div>
+                )}
+              </div>
+            );
+          })}
         </div>
       )}
     </div>
